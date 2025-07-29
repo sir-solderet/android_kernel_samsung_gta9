@@ -466,6 +466,11 @@ static int do_read_inode(struct inode *inode)
 	/* Need all the flag bits */
 	f2fs_init_read_extent_tree(inode, node_page);
 	f2fs_init_age_extent_tree(inode);
+	if (unlikely((inode->i_mode & S_IFMT) == 0)) {
+		print_block_data(sbi->sb, inode->i_ino, page_address(node_page),
+			0, F2FS_BLKSIZE);
+		f2fs_bug_on(sbi, 1);
+	}
 
 	if (!sanity_check_inode(inode, node_page)) {
 		f2fs_put_page(node_page, 1);

@@ -1856,6 +1856,43 @@ static int bq27xxx_battery_pwr_avg(struct bq27xxx_device_info *di,
 	return 0;
 }
 
+static int bq27xxx_battery_status(struct bq27xxx_device_info *di,
+				  union power_supply_propval *val)
+{
+	int status;
+
+	if (di->opts & BQ27XXX_O_ZERO) {
+		if (di->cache.flags & BQ27000_FLAG_FC)
+			status = POWER_SUPPLY_STATUS_FULL;
+		else if (di->cache.flags & BQ27000_FLAG_CHGS)
+			status = POWER_SUPPLY_STATUS_CHARGING;
+		else
+			status = POWER_SUPPLY_STATUS_DISCHARGING;
+	} else if (di->opts & BQ27Z561_O_BITS) {
+		if (di->cache.flags & BQ27Z561_FLAG_FC)
+			status = POWER_SUPPLY_STATUS_FULL;
+		else if (di->cache.flags & BQ27Z561_FLAG_DIS_CH)
+			status = POWER_SUPPLY_STATUS_DISCHARGING;
+		else
+			status = POWER_SUPPLY_STATUS_CHARGING;
+	} else {
+		if (di->cache.flags & BQ27XXX_FLAG_FC)
+			status = POWER_SUPPLY_STATUS_FULL;
+		else if (di->cache.flags & BQ27XXX_FLAG_DSC)
+			status = POWER_SUPPLY_STATUS_DISCHARGING;
+		else
+			status = POWER_SUPPLY_STATUS_CHARGING;
+	}
+
+	if ((status == POWER_SUPPLY_STATUS_DISCHARGING) &&
+	    (power_supply_am_i_supplied(di->bat) > 0))
+		status = POWER_SUPPLY_STATUS_NOT_CHARGING;
+
+	val->intval = status;
+
+	return 0;
+}
+
 static int bq27xxx_battery_capacity_level(struct bq27xxx_device_info *di,
 					  union power_supply_propval *val)
 {
@@ -1941,6 +1978,32 @@ static int bq27xxx_battery_get_property(struct power_supply *psy,
 
 	switch (psp) {
 	case POWER_SUPPLY_PROP_STATUS:
+		ret = bq27xxx_battery_status(di, val);
+		if (IS_ERR_OR_NULL(di->chg_psy)) {
+			dev_info(di->dev, "%s retry to get chg_psy\n", __func__);
+			di->chg_psy =
+				devm_power_supply_get_by_phandle(di->dev, "charger");
+		}
+
+		if (IS_ERR_OR_NULL(di->chg_psy)) {
+			dev_info(di->dev, "%s Couldn't get chg_psy\n", __func__);
+			ret = -EINVAL;
+		} else {
+			ret = power_supply_get_property(di->chg_psy,
+				POWER_SUPPLY_PROP_ONLINE, &online);
+			ret = power_supply_get_property(di->chg_psy,
+				POWER_SUPPLY_PROP_STATUS, &status);
+
+			if (!online.intval)
+				val->intval = POWER_SUPPLY_STATUS_DISCHARGING;
+			else {
+				if (status.intval == POWER_SUPPLY_STATUS_NOT_CHARGING)
+					val->intval = status.intval;
+				else
+					val->intval = POWER_SUPPLY_STATUS_CHARGING;
+			}
+		}
+
 		ret = bq27xxx_battery_current_and_status(di, NULL, val, NULL);
 		break;
 	case POWER_SUPPLY_PROP_VOLTAGE_NOW:
@@ -2020,6 +2083,7 @@ static void bq27xxx_external_power_changed(struct power_supply *psy)
 {
 	struct bq27xxx_device_info *di = power_supply_get_drvdata(psy);
 
+	power_supply_changed(di->bat);
 	/* After charger plug in/out wait 0.5s for things to stabilize */
 	mod_delayed_work(system_wq, &di->work, HZ / 2);
 }
