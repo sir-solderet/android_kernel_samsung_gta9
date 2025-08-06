@@ -180,7 +180,7 @@ static int cps8851_read_device(void *client, u32 reg, int len, void *dst)
 {
     struct i2c_client *i2c = client;
     int ret = 0, count = 5;
-    u64 t1 = 0, t2 = 0;
+    u64 __maybe_unused t1 = 0, __maybe_unused t2 = 0;
 
     while (1) {
         t1 = local_clock();
@@ -201,7 +201,7 @@ static int cps8851_write_device(void *client, u32 reg, int len, const void *src)
 {
     struct i2c_client *i2c = client;
     int ret = 0, count = 5;
-    u64 t1 = 0, t2 = 0;
+    u64 __maybe_unused t1 = 0, __maybe_unused t2 = 0;
 
     while (1) {
         t1 = local_clock();
