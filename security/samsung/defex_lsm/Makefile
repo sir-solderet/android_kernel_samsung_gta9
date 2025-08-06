@@ -52,7 +52,6 @@ ifeq ($(CONFIG_SECURITY_DEFEX_GKI),y)
 endif
 
 ifeq ($(CONFIG_SECURITY_DEFEX_NOBOOTPART),y)
-    $(warning [DEFEX] Disable boot partition)
     GKI_BUILD := true
 endif
 
@@ -68,14 +67,12 @@ endif
 
 ifeq ($(CONFIG_SECURITY_DEFEX_DTM),y)
     ifneq ($(FACTORY_BUILD), true)
-        $(warning [DEFEX] Enable DTM)
         TRUSTED_MAP_ENABLE=true
     endif
 endif
 
 ifeq ($(CONFIG_SECURITY_DEFEX_IMR),y)
     ifneq ($(FACTORY_BUILD), true)
-        $(warning [DEFEX] Enable Immutable root)
         IMMUTABLE_ROOT_ENABLE=true
     endif
 endif
@@ -91,24 +88,17 @@ else
 endif
 
 ifneq ($(wildcard $(srctree)/include/crypto/internal/rsa.h),)
-    $(warning [DEFEX] INTEGRITY_ENABLE)
     INTEGRITY_ENABLE=false
 endif
 
 ifeq ($(GKI_BUILD), true)
     DEFEX_DEFINES += -DDEFEX_GKI
     ifeq ($(CONFIG_DEFEX_KERNEL_ONLY),y)
-        $(warning [DEFEX] Kernel_only BUILD)
         USER_BUILD := false
-     else
-        $(warning [DEFEX] GKI BUILD)
    endif
  else
     ifeq ($(CONFIG_SECURITY_DEFEX_SINGLE_FILE),y)
-        $(warning [DEFEX] Single rule file MODE.)
         DEFEX_DEFINES += -DDEFEX_SINGLE_RULES_FILE
-    else
-        $(warning [DEFEX] Multiple rule file MODE.)
     endif
 endif
 
@@ -189,12 +179,10 @@ ifeq ($(LOG_FILE_ENABLE), true)
 endif
 
 ifeq ($(USER_BUILD), true)
-    $(warning [DEFEX] DEBUG_DISABLE)
     ifeq ($(CONFIG_SECURITY_DSMS), y)
         DEFEX_DEFINES += -DDEFEX_DSMS_ENABLE
     endif
 else
-    $(warning [DEFEX] DEBUG_ENABLE)
     defex-y += debug/defex_debug.o
     defex-y += core/defex_sysfs.o
     DEFEX_DEFINES += -DDEFEX_PERMISSIVE_INT
@@ -262,7 +250,6 @@ ifneq ($(wildcard  $(srctree)/$(src)/pack_rules.c),)
 
     SOURCE_RULES := $(srctree)/$(src)/defex_rules.c
     ifneq ($(wildcard $(srctree)/$(src)/file_list),)
-        $(warning '[DEFEX] file_list found')
         SOURCE_RULES := $(srctree)/$(src)/defex_rules_reduced.c
         DEPEND_LIST += $(SOURCE_RULES)
         DEPEND_LIST += $(srctree)/$(src)/file_list
