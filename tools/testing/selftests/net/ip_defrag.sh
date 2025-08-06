@@ -3,7 +3,6 @@
 #
 # Run a couple of IP defragmentation tests.
 
-set +x
 set -e
 
 modprobe -q nf_defrag_ipv6

@@ -23,7 +23,6 @@ TRACE_ROOT=/sys/kernel/debug/tracing
 
 function lookup_mac()
 {
-	set +x
 	if [ ! -z "$2" ]; then
 		MAC=$(ip netns exec $2 ip link show $1 | grep ether | awk '{print $2}')
 	else
@@ -31,11 +30,10 @@ function lookup_mac()
 	fi
 	MAC="${MAC//:/}"
 	echo "0x${MAC:10:2}${MAC:8:2}${MAC:6:2}${MAC:4:2}${MAC:2:2}${MAC:0:2}"
-	set -x
 }
 
 function cleanup {
-	set +ex
+	set +e
 	rm test_lwt_bpf.o 2> /dev/null
 	ip link del $VETH0 2> /dev/null
 	ip link del $VETH1 2> /dev/null
@@ -44,7 +42,7 @@ function cleanup {
 	ip netns exec $NS1 killall netserver
 	ip netns delete $NS1 2> /dev/null
 	ip netns delete $NS2 2> /dev/null
-	set -ex
+	set -e
 }
 
 function setup_one_veth {
@@ -62,9 +60,7 @@ function setup_one_veth {
 }
 
 function get_trace {
-	set +x
 	cat ${TRACE_ROOT}/trace | grep -v '^#'
-	set -x
 }
 
 function cleanup_routes {
@@ -100,16 +96,13 @@ function filter_trace {
 }
 
 function expect_fail {
-	set +x
 	echo "FAIL:"
 	echo "Expected: $1"
 	echo "Got: $2"
-	set -x
 	exit 1
 }
 
 function match_trace {
-	set +x
 	RET=0
 	TRACE=$1
 	EXPECT=$2
@@ -119,16 +112,13 @@ function match_trace {
 		expect_fail "$EXPECT" "$GOT"
 		RET=1
 	}
-	set -x
 	return $RET
 }
 
 function test_start {
-	set +x
 	echo "----------------------------------------------------------------"
 	echo "Starting test: $*"
 	echo "----------------------------------------------------------------"
-	set -x
 }
 
 function failure {

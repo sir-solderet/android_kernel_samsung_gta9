@@ -78,7 +78,7 @@ function cleanup {
 	sysctl -q -w net.ipv4.conf.all.rp_filter=$RP_FILTER
 	sysctl -q -w net.ipv6.conf.all.forwarding=$IPV6_FORWARDING
 	rm -f /sys/fs/bpf/tc/globals/tun_iface
-	[[ -z $DEBUG ]] || set -x
+	[[ -z $DEBUG ]]
 	set -e
 }
 

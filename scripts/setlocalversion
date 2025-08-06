@@ -216,8 +216,6 @@ fi
 
 sec_scm_version()
 {
-	set -x
-
 	# Forcely use android_release and kmi_generation.
 	# And SEC build provide 'LOCALVERSION' to propagate extra version info.
 	if [ -n "${android_release}" ] && [ -n "${kmi_generation}" ]; then
@@ -225,8 +223,6 @@ sec_scm_version()
 	else
 		echo -n "$res"
 	fi
-
-	set +x
 }
 
 res=$(sec_scm_version)

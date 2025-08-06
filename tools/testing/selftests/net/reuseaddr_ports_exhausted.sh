@@ -5,7 +5,6 @@
 #
 # Author: Kuniyuki Iwashima <kuniyu@amazon.co.jp>
 
-set +x
 set -e
 
 readonly NETNS="ns-$(mktemp -u XXXXXX)"

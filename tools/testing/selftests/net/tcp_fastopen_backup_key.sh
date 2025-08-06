@@ -4,7 +4,6 @@
 # rotate TFO keys for ipv4/ipv6 and verify that the client does
 # not present an invalid cookie.
 
-set +x
 set -e
 
 readonly NETNS="ns-$(mktemp -u XXXXXX)"

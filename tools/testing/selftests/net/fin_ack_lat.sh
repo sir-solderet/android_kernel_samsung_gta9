@@ -3,7 +3,6 @@
 #
 # Test latency spikes caused by FIN/ACK handling race.
 
-set +x
 set -e
 
 tmpfile=$(mktemp /tmp/fin_ack_latency.XXXX.log)
