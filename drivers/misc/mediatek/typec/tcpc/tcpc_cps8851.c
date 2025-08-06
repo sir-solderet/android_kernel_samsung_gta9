@@ -852,11 +852,13 @@ static inline int cps8851_fault_status_vconn_ov(struct tcpc_device *tcpc)
 
 int cps8851_fault_status_clear(struct tcpc_device *tcpc, uint8_t status)
 {
+    int ret = 0;
+
     if (status & TCPC_V10_REG_FAULT_STATUS_VCONN_OV)
         ret = cps8851_fault_status_vconn_ov(tcpc);
 
     cps8851_i2c_write8(tcpc, TCPC_V10_REG_FAULT_STATUS, status);
-    return 0;
+    return ret;
 }
 
 int cps8851_get_alert_mask(struct tcpc_device *tcpc, uint32_t *mask)
