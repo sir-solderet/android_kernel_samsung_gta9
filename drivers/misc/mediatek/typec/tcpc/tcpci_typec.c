@@ -19,7 +19,7 @@
  *   [extern for other module]
  *
  *********************************************************/
-extern gxy_usb_set_usbccflag( enum gxy_usb_orient cc_flag);
+extern int gxy_usb_set_usbccflag( enum gxy_usb_orient cc_flag);
 /*Tab A9 code for SR-AX6739A-01-467 by hualei at 20230506 end*/
 
 
