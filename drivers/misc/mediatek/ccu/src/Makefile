@@ -14,7 +14,6 @@
 subdir-ccflags-y += -DMTK_VPU_KERNEL
 subdir-ccflags-y += -DCCU_AF_ENABLE
 
-$(warning CCU_MAKE_FILE_CALLED_2_1_1)
 $(info $(CONFIG_MTK_CAMERA_ISP_PLATFORM))
 
 platform = $(subst $\",,$(CONFIG_MTK_CAMERA_ISP_PLATFORM))
@@ -33,5 +32,4 @@ else ifneq (,$(filter $(platform),mt6771 mt6775 mt6785))
     obj-y += 2.0/
 else ifneq (,$(filter $(platform),mt6779 mt6885))
     obj-y += 2.1/
-    $(warning CCU_MAKE_FILE_CALLED_2_1)
 endif
