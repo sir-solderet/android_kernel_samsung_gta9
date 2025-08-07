@@ -79,8 +79,8 @@ rm -rf "$TMPDIR"
 rm -f "$OUT_BOOTIMG"
 rm -f "$OUT_VENDORBOOTIMG"
 mkdir "$TMPDIR"
-mkdir -p "$MODULES_DIR/0.0"
 mkdir "$PLATFORM_RAMDISK_DIR"
+mkdir -p "$MODULES_DIR/0.0"
 
 cp -rf "$IN_PLATFORM"/* "$PLATFORM_RAMDISK_DIR/"
 
