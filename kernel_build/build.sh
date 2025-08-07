@@ -90,14 +90,35 @@ if ! find "$MODULES_OUTDIR/lib/modules" -mindepth 1 -type d | read; then
     exit 1
 fi
 
+# Check for duplicate modules in modules.load
+if [ -f "$IN_DLKM/modules.load" ]; then
+    dupes=$(sort "$IN_DLKM/modules.load" | uniq -d | xargs)
+    if [ -n "$dupes" ]; then
+        echo -e "\nERROR: Duplicate module entries found in modules.load: $dupes\n"
+        exit 1
+    fi
+fi
+
+# Warn for modules present but not in modules.load
+if [ -d "$MODULES_OUTDIR/lib/modules" ] && [ -f "$IN_DLKM/modules.load" ]; then
+    all_built=$(find "$MODULES_OUTDIR/lib/modules" -type f -name "*.ko" -exec basename {} \; | sort)
+    all_load=$(sort "$IN_DLKM/modules.load")
+    not_in_load=$(comm -23 <(echo "$all_built") <(echo "$all_load") | xargs)
+    if [ -n "$not_in_load" ]; then
+        echo -e "\nWARNING: The following modules exist but are NOT in modules.load: $not_in_load\n"
+    fi
+fi
+
+# Copy all modules
+MODULE_SRC_DIR=$(find "$MODULES_OUTDIR/lib/modules" -mindepth 1 -maxdepth 1 -type d)
+find "$MODULE_SRC_DIR" -name "*.ko" -type f -exec cp -t "$MODULES_DIR/0.0/" {} +
+
 missing_modules=""
 
 for module in $(cat "$IN_DLKM/modules.load"); do
     i=$(find "$MODULES_OUTDIR/lib/modules" -name $module);
-    if [[ -f "$i" ]]; then
-        cp -f "$i" "$MODULES_DIR/0.0/$module"
-    else
-	      missing_modules="$missing_modules $module"
+    if [[ ! -f "$i" ]]; then
+        missing_modules="$missing_modules $module"
     fi
 done
 
