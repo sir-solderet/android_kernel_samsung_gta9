@@ -70,10 +70,11 @@ if [ ! -d "$PARENT_DIR/build-tools" ]; then
 fi
 
 echo "Starting compilation..."
-make -j$(nproc --all) -C $(pwd) O=out $BUILD_ARGS gta9_defconfig >/dev/null
-make -j$(nproc --all) -C $(pwd) O=out $BUILD_ARGS dtbs >/dev/null
-make -j$(nproc --all) -C $(pwd) O=out $BUILD_ARGS >/dev/null
-make -j$(nproc --all) -C $(pwd) O=out INSTALL_MOD_STRIP="--strip-debug --keep-section=.ARM.attributes" INSTALL_MOD_PATH="$MODULES_OUTDIR" modules_install >/dev/null
+rm -f log.txt
+make -j$(nproc --all) -C $(pwd) O=out $BUILD_ARGS gta9_defconfig 2>&1 | tee log.txt
+make -j$(nproc --all) -C $(pwd) O=out $BUILD_ARGS dtbs 2>&1 | tee -a log.txt
+make -j$(nproc --all) -C $(pwd) O=out $BUILD_ARGS 2>&1 | tee -a log.txt
+make -j$(nproc --all) -C $(pwd) O=out INSTALL_MOD_STRIP="--strip-debug --keep-section=.ARM.attributes" INSTALL_MOD_PATH="$MODULES_OUTDIR" modules_install 2>&1 | tee -a log.txt
 
 rm -rf "$TMPDIR"
 rm -f "$OUT_BOOTIMG"

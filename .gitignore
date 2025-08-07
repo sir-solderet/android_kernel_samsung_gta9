@@ -160,3 +160,6 @@ sphinx_*/
 
 # Fuck off
 security/samsung/defex_lsm/pack_rules
+
+# Build log
+log.txt
