@@ -145,6 +145,8 @@ $MKBOOTIMG --header_version 4 \
     --vendor_bootconfig "$(pwd)/bootconfig" \
     --dtb "$OUT_DTBIMAGE" \
     --vendor_ramdisk "$(pwd)/ramdisk_platform.lz4" \
+    --vendor_cmdline "bootopt=64S3,32N2,64N2 loop.max_part=7" \
+    --board SRPWF07A004 \
     --os_version 15.0.0 \
     --os_patch_level 2025-01 || exit 1
 
