@@ -163,3 +163,6 @@ security/samsung/defex_lsm/pack_rules
 
 # Build log
 log.txt
+
+# Build artifacts
+kernel_build/*.zip
