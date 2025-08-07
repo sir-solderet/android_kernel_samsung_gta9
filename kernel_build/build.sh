@@ -20,7 +20,7 @@ TMPDIR="$(pwd)/kernel_build/tmp"
 
 IN_PLATFORM="$(pwd)/kernel_build/vboot_platform"
 IN_DLKM="$(pwd)/kernel_build/vboot_dlkm"
-IN_DTB="$OUTDIR/arch/arm64/boot/dts/mediatek/mt8781-gta9_common.dtsi"
+IN_DTB="$OUTDIR/arch/arm64/boot/dts/mediatek/mt6789.dtb"
 
 PLATFORM_RAMDISK_DIR="$TMPDIR/ramdisk_platform"
 DLKM_RAMDISK_DIR="$TMPDIR/ramdisk_dlkm"
