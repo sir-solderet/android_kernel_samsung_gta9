@@ -23,9 +23,8 @@ IN_DLKM="$(pwd)/kernel_build/vboot_dlkm"
 IN_DTB="$OUTDIR/arch/arm64/boot/dts/mediatek/mt6789.dtb"
 
 PLATFORM_RAMDISK_DIR="$TMPDIR/ramdisk_platform"
-DLKM_RAMDISK_DIR="$TMPDIR/ramdisk_dlkm"
 PREBUILT_RAMDISK="$(pwd)/kernel_build/boot/ramdisk"
-MODULES_DIR="$DLKM_RAMDISK_DIR/lib/modules"
+MODULES_DIR="$PLATFORM_RAMDISK_DIR/lib/modules"
 
 MKBOOTIMG="$(pwd)/kernel_build/mkbootimg/mkbootimg.py"
 MKDTBOIMG="$(pwd)/kernel_build/dtb/mkdtboimg.py"
@@ -84,8 +83,6 @@ mkdir -p "$MODULES_DIR/0.0"
 mkdir "$PLATFORM_RAMDISK_DIR"
 
 cp -rf "$IN_PLATFORM"/* "$PLATFORM_RAMDISK_DIR/"
-mkdir "$PLATFORM_RAMDISK_DIR/first_stage_ramdisk"
-cp -f "$PLATFORM_RAMDISK_DIR/fstab.mt8781" "$PLATFORM_RAMDISK_DIR/first_stage_ramdisk/fstab.mt8781"
 
 if ! find "$MODULES_OUTDIR/lib/modules" -mindepth 1 -type d | read; then
     echo "Unknown error!"
@@ -108,7 +105,7 @@ if [[ "$missing_modules" != "" ]]; then
 	  exit 1
 fi
 
-depmod 0.0 -b "$DLKM_RAMDISK_DIR"
+depmod 0.0 -b "$PLATFORM_RAMDISK_DIR"
 sed -i 's/\([^ ]\+\)/\/lib\/modules\/\1/g' "$MODULES_DIR/0.0/modules.dep"
 cd "$MODULES_DIR/0.0"
 for i in $(find . -name "modules.*" -type f); do
@@ -137,21 +134,16 @@ $MKBOOTIMG --header_version 4 \
 echo "Done!"
 echo "Building vendor_boot image..."
 
-cd "$DLKM_RAMDISK_DIR"
-find . | cpio --quiet -o -H newc -R root:root | lz4 -9cl > ../ramdisk_dlkm.lz4
-cd ../ramdisk_platform
+cd "$PLATFORM_RAMDISK_DIR"
 find . | cpio --quiet -o -H newc -R root:root | lz4 -9cl > ../ramdisk_platform.lz4
 cd ..
-echo "buildtime_bootconfig=enable" > bootconfig
+touch bootconfig
 
 $MKBOOTIMG --header_version 4 \
     --vendor_boot "$OUT_VENDORBOOTIMG" \
     --vendor_bootconfig "$(pwd)/bootconfig" \
     --dtb "$OUT_DTBIMAGE" \
     --vendor_ramdisk "$(pwd)/ramdisk_platform.lz4" \
-    --ramdisk_type dlkm \
-    --ramdisk_name dlkm \
-    --vendor_ramdisk_fragment "$(pwd)/ramdisk_dlkm.lz4" \
     --os_version 15.0.0 \
     --os_patch_level 2025-01 || exit 1
 
