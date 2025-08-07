@@ -31,7 +31,7 @@ MKDTBOIMG="$(pwd)/kernel_build/dtb/mkdtboimg.py"
 
 OUT_KERNELZIP="$(pwd)/kernel_build/Kernel-$(date '+%Y%m%d-%H%M')_gta9.zip"
 OUT_KERNELTAR="$(pwd)/kernel_build/Kernel-$(date '+%Y%m%d-%H%M')_gta9.tar"
-OUT_KERNEL="$OUTDIR/arch/arm64/boot/Image"
+OUT_KERNEL="$OUTDIR/arch/arm64/boot/Image.gz"
 OUT_BOOTIMG="$(pwd)/kernel_build/zip/boot.img"
 OUT_VENDORBOOTIMG="$(pwd)/kernel_build/zip/vendor_boot.img"
 OUT_DTBIMAGE="$TMPDIR/dtb.img"
