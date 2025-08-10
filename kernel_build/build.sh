@@ -2,11 +2,29 @@
 
 set -e
 
+# === Detect root directory ===
 if [[ -z "$1" ]]; then
-    echo "Please exec from root directory"
-    exit 1
+    ROOT_DIR="$(pwd)"
+else
+    ROOT_DIR="$1"
 fi
-cd "$1"
+echo "[+] Building from root: $ROOT_DIR"
+cd "$ROOT_DIR"
+
+# === Clone KernelSU if missing ===
+if [ ! -d "$ROOT_DIR/KernelSU" ]; then
+    echo "[+] Cloning KernelSU..."
+    git clone https://github.com/tiann/KernelSU.git -b main
+fi
+
+# === Add KernelSU to Makefile if missing ===
+if ! grep -q "core-y \+= KernelSU/" "$ROOT_DIR/Makefile"; then
+    echo "[+] Adding KernelSU to Makefile..."
+    echo "" >> "$ROOT_DIR/Makefile"
+    echo "core-y += KernelSU/" >> "$ROOT_DIR/Makefile"
+fi
+
+
 
 if [[ "$(uname -m)" != "x86_64" ]]; then
   echo "This script requires an x86_64 (64-bit) machine."
@@ -69,9 +87,39 @@ if [ ! -d "$PARENT_DIR/build-tools" ]; then
     git clone https://android.googlesource.com/platform/prebuilts/build-tools "$PARENT_DIR/build-tools" --depth=1
 fi
 
+# Calculate safe job count
+TOTAL_MEM_MB=$(awk '/MemTotal/ {print $2}' /proc/meminfo)
+TOTAL_SWAP_MB=$(awk '/SwapTotal/ {print $2}' /proc/meminfo)
+TOTAL_VMEM_MB=$((TOTAL_MEM_MB + TOTAL_SWAP_MB))
+SAFE_JOBS=$((TOTAL_VMEM_MB / 1228))
+CPU_CORES=$(nproc --all)
+if [ $SAFE_JOBS -gt $CPU_CORES ]; then
+    SAFE_JOBS=$CPU_CORES
+fi
+if [ $SAFE_JOBS -lt 4 ]; then
+    SAFE_JOBS=4
+fi
+echo "[+] Using -j$SAFE_JOBS (RAM+swap aware)"
+
 echo "Starting compilation..."
 rm -f log.txt
 make -j$(nproc --all) -C $(pwd) O=out $BUILD_ARGS gta9_defconfig 2>&1 | tee log.txt
+
+# Enable KernelSU configs
+scripts/config --file out/.config \
+    --enable CONFIG_KPROBES \
+    --enable CONFIG_HAVE_KPROBES \
+    --enable CONFIG_KALLSYMS \
+    --enable CONFIG_KALLSYMS_ALL \
+    --enable CONFIG_BPF \
+    --enable CONFIG_BPF_SYSCALL \
+    --enable CONFIG_KPROBES_ON_FTRACE \
+    --enable CONFIG_KSU
+
+# Apply the new config
+make -j$(nproc --all) -C $(pwd) O=out olddefconfig
+
+# Now build everything
 make -j$(nproc --all) -C $(pwd) O=out $BUILD_ARGS dtbs 2>&1 | tee -a log.txt
 make -j$(nproc --all) -C $(pwd) O=out $BUILD_ARGS 2>&1 | tee -a log.txt
 make -j$(nproc --all) -C $(pwd) O=out INSTALL_MOD_STRIP="--strip-debug --keep-section=.ARM.attributes" INSTALL_MOD_PATH="$MODULES_OUTDIR" modules_install 2>&1 | tee -a log.txt
