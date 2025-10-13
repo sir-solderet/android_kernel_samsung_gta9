@@ -180,14 +180,20 @@ static int cps8851_read_device(void *client, u32 reg, int len, void *dst)
 {
     struct i2c_client *i2c = client;
     int ret = 0, count = 5;
+#if ENABLE_CPS8851_DBG
     u64 t1 = 0, t2 = 0;
+#endif
 
     while (1) {
+#if ENABLE_CPS8851_DBG
         t1 = local_clock();
+#endif
         ret = i2c_smbus_read_i2c_block_data(i2c, reg, len, dst);
+#if ENABLE_CPS8851_DBG
         t2 = local_clock();
         CPS8851_INFO("%s del = %lluus, reg = %02X, len = %d\n",
                 __func__, (t2 - t1) / NSEC_PER_USEC, reg, len);
+#endif
         if (ret < 0 && count > 1)
             count--;
         else
@@ -201,14 +207,20 @@ static int cps8851_write_device(void *client, u32 reg, int len, const void *src)
 {
     struct i2c_client *i2c = client;
     int ret = 0, count = 5;
+#if ENABLE_CPS8851_DBG
     u64 t1 = 0, t2 = 0;
+#endif
 
     while (1) {
+#if ENABLE_CPS8851_DBG
         t1 = local_clock();
+#endif
         ret = i2c_smbus_write_i2c_block_data(i2c, reg, len, src);
+#if ENABLE_CPS8851_DBG
         t2 = local_clock();
         CPS8851_INFO("%s del = %lluus, reg = %02X, len = %d\n",
                 __func__, (t2 - t1) / NSEC_PER_USEC, reg, len);
+#endif
         if (ret < 0 && count > 1)
             count--;
         else
@@ -854,11 +866,14 @@ int cps8851_fault_status_clear(struct tcpc_device *tcpc, uint8_t status)
 {
     int ret;
 
-    if (status & TCPC_V10_REG_FAULT_STATUS_VCONN_OV)
+    if (status & TCPC_V10_REG_FAULT_STATUS_VCONN_OV) {
         ret = cps8851_fault_status_vconn_ov(tcpc);
+        if (ret < 0)
+            return ret;
+    }
 
-    cps8851_i2c_write8(tcpc, TCPC_V10_REG_FAULT_STATUS, status);
-    return 0;
+    ret = cps8851_i2c_write8(tcpc, TCPC_V10_REG_FAULT_STATUS, status);
+    return ret;
 }
 
 int cps8851_get_alert_mask(struct tcpc_device *tcpc, uint32_t *mask)
